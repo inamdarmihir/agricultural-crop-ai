@@ -55,9 +55,9 @@ Thumbs.db
 # Streamlit
 .streamlit/
 
-# Large files (if needed, use Git LFS)
-# *.zip
-# *.pth
+# Large files (model files are too large for GitHub)
+*.pth
+*.zip
 
 # Temporary files
 *.tmp

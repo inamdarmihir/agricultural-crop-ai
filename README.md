@@ -19,6 +19,11 @@ This project implements state-of-the-art deep learning models for agricultural c
 - **📐 Input Size: 331x331 pixels**
 - **💾 Model Size: ~755 MB**
 
+> **Note**: The pre-trained model file is too large for GitHub (755MB). You can either:
+> 1. Train your own model using the provided Jupyter notebook
+> 2. Contact the repository owner for the pre-trained model
+> 3. Use the notebook to achieve similar 88% accuracy
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -40,12 +45,18 @@ cd Agricultural-Crop-Identification
 pip install -r requirements.txt
 ```
 
-3. **Extract dataset** (if you have the dataset zip)
+3. **Download the pre-trained model**
+```bash
+# The NASNet model (755MB) is too large for GitHub
+# Contact the repository owner or train your own model using the notebook
+```
+
+4. **Extract dataset** (if you have the dataset zip)
 ```bash
 # Extract to agricultural_data/Agricultural-crops/
 ```
 
-4. **Run the Streamlit app**
+5. **Run the Streamlit app**
 ```bash
 streamlit run app.py
 ```
@@ -55,7 +66,7 @@ streamlit run app.py
 ```
 Agricultural-Crop-Identification/
 ├── app.py                                          # Main Streamlit application
-├── best_nasnet_crop_model.pth                      # Pre-trained NASNet model (88% accuracy)
+├── best_nasnet_crop_model.pth                      # Pre-trained NASNet model (download separately)
 ├── agricultural_crop_classification_nasnet_revised.ipynb  # Enhanced training notebook
 ├── requirements.txt                                # Python dependencies
 ├── agricultural_data/                              # Dataset directory
