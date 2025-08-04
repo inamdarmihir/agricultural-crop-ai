@@ -1,0 +1,54 @@
+# Core deep learning frameworks
+torch>=2.6.0
+torchvision>=0.21.0
+torchaudio>=2.6.0
+
+# Data handling and processing
+numpy>=1.24.0
+pandas>=2.0.0
+Pillow>=10.0.0
+
+# Visualization and plotting
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+
+# Machine learning utilities
+scikit-learn>=1.3.0
+
+# Progress tracking and utilities
+tqdm>=4.65.0
+
+# Jupyter notebook support
+jupyter>=1.0.0
+notebook>=6.5.0
+ipywidgets>=8.0.0
+
+# Enhanced notebook execution
+papermill>=2.4.0
+nbconvert>=7.0.0
+
+# Image processing enhancements
+opencv-python>=4.8.0
+albumentations>=1.3.0
+
+# Model optimization and utilities
+timm>=0.9.0  # For additional model architectures
+torchmetrics>=1.0.0  # Enhanced metrics
+
+# Web application (Streamlit)
+streamlit>=1.28.0
+
+# Development and debugging
+tensorboard>=2.13.0
+wandb>=0.15.0  # Optional: for experiment tracking
+
+# Data augmentation alternatives
+imgaug>=0.4.0  # Alternative augmentation library
+
+# Memory optimization
+psutil>=5.9.0  # System monitoring
+
+# Additional utilities
+colorama>=0.4.6  # Colored terminal output
+rich>=13.0.0  # Rich text and beautiful formatting
