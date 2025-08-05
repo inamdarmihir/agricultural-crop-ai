@@ -44,7 +44,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Title
-st.markdown('<h1 class="main-header">🌾 Agricultural Crop Classification System</h1>', unsafe_allow_html=True)
+st.markdown("<h1 class=\"main-header\">🌾 Agricultural Crop Classification System</h1>", unsafe_allow_html=True)
 
 # Sidebar
 st.sidebar.title("Navigation")
@@ -65,6 +65,22 @@ def get_crop_classes():
 
 crop_classes = get_crop_classes()
 
+# Count images per class (moved to a higher scope)
+@st.cache_data
+def count_images():
+    image_counts = {}
+    total_images = 0
+    for class_name in crop_classes:
+        class_dir = os.path.join("agricultural_data/Agricultural-crops", class_name)
+        if os.path.exists(class_dir):
+            count = len([f for f in os.listdir(class_dir) 
+                       if f.lower().endswith((".png", ".jpg", ".jpeg"))])
+            image_counts[class_name] = count
+            total_images += count
+    return image_counts, total_images
+
+image_counts, total_images = count_images()
+
 # Custom Dataset Class
 class CropDataset(Dataset):
     def __init__(self, data_dir, transform=None):
@@ -78,7 +94,7 @@ class CropDataset(Dataset):
             class_dir = os.path.join(data_dir, class_name)
             if os.path.exists(class_dir):
                 for img_name in os.listdir(class_dir):
-                    if img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    if img_name.lower().endswith((".png", ".jpg", ".jpeg")):
                         self.images.append(os.path.join(class_dir, img_name))
                         self.labels.append(self.class_to_idx[class_name])
     
@@ -87,7 +103,7 @@ class CropDataset(Dataset):
     
     def __getitem__(self, idx):
         img_path = self.images[idx]
-        image = Image.open(img_path).convert('RGB')
+        image = Image.open(img_path).convert("RGB")
         label = self.labels[idx]
         
         if self.transform:
@@ -287,41 +303,27 @@ if page == "📊 Dataset Overview":
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
         st.metric("Total Crop Classes", len(crop_classes))
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     
-    # Count images per class
-    @st.cache_data
-    def count_images():
-        image_counts = {}
-        total_images = 0
-        for class_name in crop_classes:
-            class_dir = os.path.join("agricultural_data/Agricultural-crops", class_name)
-            if os.path.exists(class_dir):
-                count = len([f for f in os.listdir(class_dir) 
-                           if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
-                image_counts[class_name] = count
-                total_images += count
-        return image_counts, total_images
-    
-    image_counts, total_images = count_images()
+    # image_counts and total_images are now defined globally
     
     with col2:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
         st.metric("Total Images", total_images)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     
     with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown("<div class=\"metric-card\">", unsafe_allow_html=True)
         avg_images = total_images / len(crop_classes) if crop_classes else 0
         st.metric("Avg Images per Class", f"{avg_images:.1f}")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # Distribution chart
     st.subheader("Class Distribution")
-    df = pd.DataFrame(list(image_counts.items()), columns=['Crop', 'Count'])
-    fig = px.bar(df, x='Crop', y='Count', title="Number of Images per Crop Class")
+    df = pd.DataFrame(list(image_counts.items()), columns=["Crop", "Count"])
+    fig = px.bar(df, x="Crop", y="Count", title="Number of Images per Crop Class")
     fig.update_layout(xaxis_tickangle=45)
     st.plotly_chart(fig, use_container_width=True)
     
@@ -333,7 +335,7 @@ if page == "📊 Dataset Overview":
         crop_dir = os.path.join("agricultural_data/Agricultural-crops", selected_crop)
         if os.path.exists(crop_dir):
             image_files = [f for f in os.listdir(crop_dir) 
-                          if f.lower().endswith(('.png', '.jpg', '.jpeg'))][:6]
+                          if f.lower().endswith((".png", ".jpg", ".jpeg"))][:6]
             
             cols = st.columns(3)
             for i, img_file in enumerate(image_files):
@@ -448,16 +450,19 @@ elif page == "🏗️ Model Training":
             st.info("🔧 Using ResNet50 architecture (compatible with existing models)")
         elif "EfficientNet-B3" in model_type:
             model = CropClassifierEfficientNet(len(crop_classes)).to(device)
-            st.info("🔧 Using EfficientNet-B3 architecture")
+            st.info("🚀 Using EfficientNet-B3 architecture")
         elif "EfficientNet-B7" in model_type:
             model = NASNetCropClassifier(len(crop_classes)).to(device)
-            st.info("🔧 Using NASNet-equivalent (EfficientNet-B7) architecture")
+            st.info("🌌 Using NASNet-equivalent (EfficientNet-B7) architecture")
         elif "ResNet101" in model_type:
             model = CropClassifierAlt(len(crop_classes)).to(device)
-            st.info("🔧 Using ResNet101 architecture")
-        else:  # AgriCropNet
+            st.info("✨ Using ResNet101 architecture")
+        elif "AgriCropNet" in model_type:
             model = AgriCropNet(len(crop_classes)).to(device)
-            st.info("🔧 Using custom AgriCropNet architecture")
+            st.info("🌿 Using AgriCropNet (Multi-scale) architecture")
+        else:
+            st.error("Invalid model type selected.")
+            st.stop()
         
         st.info(f"Using {model_type} with {sum(p.numel() for p in model.parameters() if p.requires_grad):,} trainable parameters")
         
@@ -467,449 +472,210 @@ elif page == "🏗️ Model Training":
         total_samples = sum(class_counts)
         class_weights = [total_samples / (len(crop_classes) * count) if count > 0 else 1.0 for count in class_counts]
         class_weights = torch.FloatTensor(class_weights).to(device)
-        
         criterion = nn.CrossEntropyLoss(weight=class_weights)
-        
-        # Enhanced optimizer with weight decay
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         
         # Learning rate scheduler
         if use_scheduler:
-            scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode=\'min\', factor=0.1, patience=5)
         
         # Training loop
+        st.subheader("Training Progress")
         progress_bar = st.progress(0)
         status_text = st.empty()
+        chart_data = pd.DataFrame(columns=["Epoch", "Loss", "Accuracy", "Type"])
+        loss_chart = st.line_chart(chart_data)
         
-        train_losses = []
-        val_losses = []
-        train_accuracies = []
-        val_accuracies = []
+        best_val_accuracy = 0.0
         
         for epoch in range(epochs):
-            # Training phase
             model.train()
-            train_loss = 0.0
-            train_correct = 0
-            train_total = 0
+            running_loss = 0.0
+            correct_train = 0
+            total_train = 0
             
-            for batch_idx, (data, target) in enumerate(train_loader):
-                data, target = data.to(device), target.to(device)
+            for i, (inputs, labels) in enumerate(train_loader):
+                inputs, labels = inputs.to(device), labels.to(device)
                 
                 optimizer.zero_grad()
-                output = model(data)
-                loss = criterion(output, target)
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
                 
-                train_loss += loss.item()
-                _, predicted = torch.max(output.data, 1)
-                train_total += target.size(0)
-                train_correct += (predicted == target).sum().item()
+                running_loss += loss.item()
+                _, predicted = torch.max(outputs.data, 1)
+                total_train += labels.size(0)
+                correct_train += (predicted == labels).sum().item()
+                
+                progress_bar.progress((i + 1) / len(train_loader))
+                status_text.text(f"Epoch {epoch+1}/{epochs} - Batch {i+1}/{len(train_loader)} - Loss: {loss.item():.4f}")
+            
+            epoch_loss = running_loss / len(train_loader)
+            epoch_accuracy = correct_train / total_train
             
             # Validation phase
             model.eval()
             val_loss = 0.0
-            val_correct = 0
-            val_total = 0
-            
+            correct_val = 0
+            total_val = 0
             with torch.no_grad():
-                for data, target in val_loader:
-                    data, target = data.to(device), target.to(device)
-                    output = model(data)
-                    loss = criterion(output, target)
+                for inputs, labels in val_loader:
+                    inputs, labels = inputs.to(device), labels.to(device)
+                    outputs = model(inputs)
+                    loss = criterion(outputs, labels)
                     
                     val_loss += loss.item()
-                    _, predicted = torch.max(output.data, 1)
-                    val_total += target.size(0)
-                    val_correct += (predicted == target).sum().item()
+                    _, predicted = torch.max(outputs.data, 1)
+                    total_val += labels.size(0)
+                    correct_val += (predicted == labels).sum().item()
             
-            # Calculate metrics
-            train_loss /= len(train_loader)
-            val_loss /= len(val_loader)
-            train_acc = 100 * train_correct / train_total
-            val_acc = 100 * val_correct / val_total
+            val_epoch_loss = val_loss / len(val_loader)
+            val_epoch_accuracy = correct_val / total_val
             
-            train_losses.append(train_loss)
-            val_losses.append(val_loss)
-            train_accuracies.append(train_acc)
-            val_accuracies.append(val_acc)
-            
-            # Update learning rate
+            # Update learning rate scheduler
             if use_scheduler:
-                scheduler.step()
-                current_lr = scheduler.get_last_lr()[0]
-            else:
-                current_lr = learning_rate
+                scheduler.step(val_epoch_loss)
             
-            # Update progress
-            progress = (epoch + 1) / epochs
-            progress_bar.progress(progress)
-            status_text.text(f"Epoch {epoch+1}/{epochs} - Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2f}%, LR: {current_lr:.6f}")
+            # Update charts
+            new_train_row = pd.DataFrame([{"Epoch": epoch + 1, "Loss": epoch_loss, "Accuracy": epoch_accuracy, "Type": "Training"}])
+            new_val_row = pd.DataFrame([{"Epoch": epoch + 1, "Loss": val_epoch_loss, "Accuracy": val_epoch_accuracy, "Type": "Validation"}])
+            chart_data = pd.concat([chart_data, new_train_row, new_val_row], ignore_index=True)
+            loss_chart.line_chart(chart_data.set_index("Epoch")[["Loss", "Accuracy"]])
+            
+            status_text.text(f"Epoch {epoch+1}/{epochs} - Train Loss: {epoch_loss:.4f}, Train Acc: {epoch_accuracy:.4f} | Val Loss: {val_epoch_loss:.4f}, Val Acc: {val_epoch_accuracy:.4f}")
+            
+            # Save best model
+            if val_epoch_accuracy > best_val_accuracy:
+                best_val_accuracy = val_epoch_accuracy
+                torch.save(model.state_dict(), "best_crop_classifier.pth")
+                st.success(f"✅ Saved best model with Validation Accuracy: {best_val_accuracy:.4f}")
         
-        # Save model
-        torch.save(model.state_dict(), 'final_crop_model.pth')
-        
-        st.success("Training completed! Model saved as 'final_crop_model.pth'")
-        
-        # Plot training history
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-        
-        ax1.plot(train_losses, label='Train Loss')
-        ax1.plot(val_losses, label='Validation Loss')
-        ax1.set_title('Training and Validation Loss')
-        ax1.set_xlabel('Epoch')
-        ax1.set_ylabel('Loss')
-        ax1.legend()
-        
-        ax2.plot(train_accuracies, label='Train Accuracy')
-        ax2.plot(val_accuracies, label='Validation Accuracy')
-        ax2.set_title('Training and Validation Accuracy')
-        ax2.set_xlabel('Epoch')
-        ax2.set_ylabel('Accuracy (%)')
-        ax2.legend()
-        
-        st.pyplot(fig)
+        st.success("Training Complete!")
 
-# Model Evaluation Page
 elif page == "📈 Model Evaluation":
     st.header("Model Evaluation")
     
-    if not (os.path.exists('final_crop_model.pth') or os.path.exists('best_nasnet_crop_model.pth')):
-        st.warning("No trained model found! Please train a model first.")
+    if not crop_classes:
+        st.error("Dataset not found!")
         st.stop()
+
+    st.subheader("Load Model and Evaluate")
+    model_path = st.text_input("Path to saved model (.pth)", "best_crop_classifier.pth")
     
-    # Enhanced model loading with architecture detection
-    @st.cache_resource
-    def load_model():
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-        try:
-            # Load the saved model (prioritize NASNet model)
-            if os.path.exists('best_nasnet_crop_model.pth'):
-                checkpoint = torch.load('best_nasnet_crop_model.pth', map_location=device, weights_only=False)
-                state_dict = checkpoint.get('model_state_dict', checkpoint)
-                st.info("🔧 Loading NASNet model from best_nasnet_crop_model.pth")
-                
-                # Display model info if available
-                if 'epoch' in checkpoint:
-                    st.info(f"📈 Training epoch: {checkpoint['epoch']}")
-                if 'val_acc' in checkpoint:
-                    st.info(f"🎯 Validation accuracy: {checkpoint['val_acc']:.4f}")
-                    
-            elif os.path.exists('final_crop_model.pth'):
-                state_dict = torch.load('final_crop_model.pth', map_location=device, weights_only=False)
-                st.info("🔧 Loading model from final_crop_model.pth")
-            else:
-                st.error("No trained model found!")
-                st.info("Please train a model first using the training page.")
-                return None, device
-            
-            # Detect model architecture based on state dict keys
-            sample_keys = list(state_dict.keys())
-            
-            if any('backbone.features' in key for key in sample_keys):
-                # EfficientNet-based model (NASNet equivalent)
-                model = NASNetCropClassifier(len(crop_classes)).to(device)
-                st.info("🔧 Detected NASNet-equivalent (EfficientNet-B7) model")
-            elif any('efficientnet' in key.lower() for key in sample_keys):
-                if any('classifier.1.weight' in key for key in sample_keys):
-                    # EfficientNet-B7 (NASNet equivalent)
-                    model = NASNetCropClassifier(len(crop_classes)).to(device)
-                    st.info("🔧 Detected NASNet-equivalent (EfficientNet-B7) model")
-                else:
-                    # EfficientNet-B3
-                    model = CropClassifierEfficientNet(len(crop_classes)).to(device)
-                    st.info("🔧 Detected EfficientNet-B3 model")
-            elif any(key.startswith('backbone.conv1') for key in sample_keys):
-                # ResNet-based model
-                model = CropClassifier(len(crop_classes)).to(device)
-                st.info("🔧 Detected ResNet-based model")
-            elif any(key.startswith('model.') for key in sample_keys):
-                # Alternative architecture
-                model = CropClassifierAlt(len(crop_classes)).to(device)
-                st.info("🔧 Detected alternative model architecture")
-            else:
-                # Default to NASNet for best_nasnet_crop_model.pth
-                model = NASNetCropClassifier(len(crop_classes)).to(device)
-                st.info("🔧 Using NASNet architecture as default")
-            
-            # Try to load the state dict
-            model.load_state_dict(state_dict, strict=False)
-            model.eval()
-            
-            st.success("✅ Model loaded successfully!")
-            return model, device
-            
-        except Exception as e:
-            st.error(f"❌ Model loading failed: {str(e)}")
-            st.info("💡 Troubleshooting tips:")
-            st.info("1. Make sure you have trained a model first")
-            st.info("2. Check if the model file is corrupted")
-            st.info("3. Try retraining the model with the current architecture")
-            
-            # Offer to create a new model for training
-            if st.button("🔄 Reset and Create New Model"):
-                if os.path.exists('final_crop_model.pth'):
-                    os.remove('final_crop_model.pth')
-                if os.path.exists('best_nasnet_crop_model.pth'):
-                    os.remove('best_nasnet_crop_model.pth')
-                st.success("Model files cleared. Please retrain using the training page.")
-                st.experimental_rerun()
-            
-            return None, device
-    
-    model, device = load_model()
-    
-    if model is None:
-        st.stop()
-    
-    # Evaluation on test set
     if st.button("Evaluate Model", type="primary"):
-        # Create test dataset with appropriate input size
-        # Use 331x331 for NASNet, 224x224 for others
-        input_size = 331 if 'NASNet' in str(type(model).__name__) else 224
+        if not os.path.exists(model_path):
+            st.error(f"Model file not found at {model_path}")
+            st.stop()
         
-        test_transform = transforms.Compose([
-            transforms.Resize(int(input_size * 1.15)),
-            transforms.CenterCrop(input_size),
+        # Data transforms for evaluation
+        eval_transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
         
-        test_dataset = CropDataset("agricultural_data/Agricultural-crops", test_transform)
-        test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+        # Create dataset for evaluation (using full dataset for comprehensive evaluation)
+        full_dataset = CropDataset("agricultural_data/Agricultural-crops", eval_transform)
+        eval_loader = DataLoader(full_dataset, batch_size=32, shuffle=False)
         
-        # Evaluate
-        all_predictions = []
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize model (assuming ResNet50 for evaluation, adjust if needed)
+        model = CropClassifier(len(crop_classes)).to(device) # Or load based on saved model type
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.eval()
+        
         all_labels = []
+        all_predictions = []
         
         with torch.no_grad():
-            for data, target in test_loader:
-                data, target = data.to(device), target.to(device)
-                output = model(data)
-                _, predicted = torch.max(output, 1)
+            for inputs, labels in eval_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs, 1)
                 
+                all_labels.extend(labels.cpu().numpy())
                 all_predictions.extend(predicted.cpu().numpy())
-                all_labels.extend(target.cpu().numpy())
         
-        # Calculate accuracy
-        accuracy = 100 * sum(p == l for p, l in zip(all_predictions, all_labels)) / len(all_labels)
+        st.subheader("Evaluation Results")
         
-        st.success(f"Overall Accuracy: {accuracy:.2f}%")
-        
-        # Classification report
-        st.subheader("Classification Report")
-        report = classification_report(all_labels, all_predictions, 
-                                     target_names=crop_classes, output_dict=True)
-        
-        # Convert to DataFrame for better display
-        report_df = pd.DataFrame(report).transpose()
-        st.dataframe(report_df.round(3))
+        # Classification Report
+        report = classification_report(all_labels, all_predictions, target_names=crop_classes, output_dict=True)
+        df_report = pd.DataFrame(report).transpose()
+        st.dataframe(df_report)
         
         # Confusion Matrix
-        st.subheader("Confusion Matrix")
         cm = confusion_matrix(all_labels, all_predictions)
+        fig_cm = px.imshow(cm, 
+                           labels=dict(x="Predicted", y="True", color="Count"),
+                           x=crop_classes,
+                           y=crop_classes,
+                           color_continuous_scale="Viridis",
+                           title="Confusion Matrix")
+        st.plotly_chart(fig_cm, use_container_width=True)
         
-        fig, ax = plt.subplots(figsize=(15, 12))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-                   xticklabels=crop_classes, yticklabels=crop_classes, ax=ax)
-        ax.set_title('Confusion Matrix')
-        ax.set_xlabel('Predicted')
-        ax.set_ylabel('Actual')
-        plt.xticks(rotation=45, ha='right')
-        plt.yticks(rotation=0)
-        st.pyplot(fig)
-        
-        # Per-class accuracy
-        st.subheader("Per-Class Accuracy")
-        class_accuracies = []
-        for i, class_name in enumerate(crop_classes):
-            class_correct = sum((p == i and l == i) for p, l in zip(all_predictions, all_labels))
-            class_total = sum(l == i for l in all_labels)
-            class_acc = 100 * class_correct / class_total if class_total > 0 else 0
-            class_accuracies.append(class_acc)
-        
-        acc_df = pd.DataFrame({
-            'Crop': crop_classes,
-            'Accuracy (%)': class_accuracies
-        }).sort_values('Accuracy (%)', ascending=False)
-        
-        fig = px.bar(acc_df, x='Crop', y='Accuracy (%)', 
-                    title="Per-Class Accuracy")
-        fig.update_layout(xaxis_tickangle=45)
-        st.plotly_chart(fig, use_container_width=True)
+        st.success("Model Evaluation Complete!")
 
-# Crop Prediction Page
 elif page == "🔮 Crop Prediction":
     st.header("Crop Prediction")
     
-    if not (os.path.exists('final_crop_model.pth') or os.path.exists('best_nasnet_crop_model.pth')):
-        st.warning("No trained model found! Please train a model first.")
+    if not crop_classes:
+        st.error("Dataset not found!")
         st.stop()
+
+    st.subheader("Upload Image for Prediction")
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
     
-    # Enhanced prediction model loading
-    @st.cache_resource
-    def load_prediction_model():
+    model_path = st.text_input("Path to saved model (.pth)", "best_crop_classifier.pth")
+    
+    if uploaded_file is not None and st.button("Predict Crop", type="primary"):
+        if not os.path.exists(model_path):
+            st.error(f"Model file not found at {model_path}")
+            st.stop()
+            
+        image = Image.open(uploaded_file).convert("RGB")
+        st.image(image, caption="Uploaded Image", use_column_width=True)
+        
+        # Preprocess image
+        preprocess = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        
+        input_tensor = preprocess(image)
+        input_batch = input_tensor.unsqueeze(0)  # create a mini-batch as expected by the model
+        
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        try:
-            # Load the saved model (prioritize NASNet model)
-            if os.path.exists('best_nasnet_crop_model.pth'):
-                checkpoint = torch.load('best_nasnet_crop_model.pth', map_location=device, weights_only=False)
-                state_dict = checkpoint.get('model_state_dict', checkpoint)
-            elif os.path.exists('final_crop_model.pth'):
-                state_dict = torch.load('final_crop_model.pth', map_location=device, weights_only=False)
-            else:
-                st.error("No trained model found!")
-                st.info("Please train a model first using the training page.")
-                return None, device
-            
-            # Detect model architecture based on state dict keys
-            sample_keys = list(state_dict.keys())
-            
-            if any('backbone.features' in key for key in sample_keys):
-                # EfficientNet-based model (NASNet equivalent)
-                model = NASNetCropClassifier(len(crop_classes)).to(device)
-            elif any('efficientnet' in key.lower() for key in sample_keys):
-                if any('classifier.1.weight' in key for key in sample_keys):
-                    # EfficientNet-B7 (NASNet equivalent)
-                    model = NASNetCropClassifier(len(crop_classes)).to(device)
-                else:
-                    # EfficientNet-B3
-                    model = CropClassifierEfficientNet(len(crop_classes)).to(device)
-            elif any(key.startswith('backbone.conv1') for key in sample_keys):
-                # ResNet-based model
-                model = CropClassifier(len(crop_classes)).to(device)
-            elif any(key.startswith('model.') for key in sample_keys):
-                # Alternative architecture
-                model = CropClassifierAlt(len(crop_classes)).to(device)
-            else:
-                # Default to NASNet for best_nasnet_crop_model.pth
-                model = NASNetCropClassifier(len(crop_classes)).to(device)
-            
-            # Try to load the state dict
-            model.load_state_dict(state_dict, strict=False)
-            model.eval()
-            
-            return model, device
-            
-        except Exception as e:
-            st.error(f"❌ Prediction model loading failed: {str(e)}")
-            st.info("💡 Please ensure you have a trained model available.")
-            return None, device
-    
-    model, device = load_prediction_model()
-    
-    if model is None:
-        st.stop()
-    
-    # Image upload
-    uploaded_file = st.file_uploader("Choose a crop image...", 
-                                   type=['png', 'jpg', 'jpeg'])
-    
-    if uploaded_file is not None:
-        # Display image
-        image = Image.open(uploaded_file).convert('RGB')
+        # Initialize model (assuming ResNet50 for prediction, adjust if needed)
+        model = CropClassifier(len(crop_classes)).to(device) # Or load based on saved model type
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.eval()
         
-        col1, col2 = st.columns(2)
+        with torch.no_grad():
+            output = model(input_batch.to(device))
+            probabilities = F.softmax(output, dim=1)
+            
+        # Get top 5 predictions
+        top5_prob, top5_idx = torch.topk(probabilities, 5)
         
-        with col1:
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+        st.subheader("Prediction Results")
         
-        with col2:
-            # Preprocess image with appropriate input size
-            # Use 331x331 for NASNet, 224x224 for others
-            input_size = 331 if 'NASNet' in str(type(model).__name__) else 224
-            
-            transform = transforms.Compose([
-                transforms.Resize(int(input_size * 1.15)),
-                transforms.CenterCrop(input_size),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
-            
-            input_tensor = transform(image).unsqueeze(0).to(device)
-            
-            # Make prediction
-            with torch.no_grad():
-                output = model(input_tensor)
-                probabilities = torch.nn.functional.softmax(output[0], dim=0)
-                
-            # Get top 5 predictions
-            top5_prob, top5_indices = torch.topk(probabilities, 5)
-            
-            st.subheader("Prediction Results")
-            
-            for i in range(5):
-                crop_name = crop_classes[top5_indices[i]]
-                confidence = top5_prob[i].item() * 100
-                
-                st.write(f"**{i+1}. {crop_name}**: {confidence:.2f}%")
-                st.progress(confidence / 100)
-            
-            # Prediction confidence chart
-            st.subheader("Top 5 Predictions")
-            pred_data = {
-                'Crop': [crop_classes[idx] for idx in top5_indices],
-                'Confidence (%)': [prob.item() * 100 for prob in top5_prob]
-            }
-            
-            fig = px.bar(pred_data, x='Confidence (%)', y='Crop', 
-                        orientation='h', title="Prediction Confidence")
-            st.plotly_chart(fig, use_container_width=True)
-    
-    # Batch prediction
-    st.subheader("Batch Prediction")
-    if st.button("Test on Random Sample Images"):
-        # Get random images from dataset
-        sample_images = []
-        sample_labels = []
+        predicted_class_idx = torch.argmax(probabilities, dim=1).item()
+        predicted_class_name = crop_classes[predicted_class_idx]
+        confidence = probabilities[0][predicted_class_idx].item() * 100
         
-        for class_idx, class_name in enumerate(crop_classes[:6]):  # Show 6 classes
-            class_dir = os.path.join("agricultural_data/Agricultural-crops", class_name)
-            if os.path.exists(class_dir):
-                image_files = [f for f in os.listdir(class_dir) 
-                              if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-                if image_files:
-                    img_file = np.random.choice(image_files)
-                    img_path = os.path.join(class_dir, img_file)
-                    sample_images.append(img_path)
-                    sample_labels.append(class_name)
+        st.success(f"Predicted Crop: **{predicted_class_name}** with **{confidence:.2f}%** confidence.")
         
-        # Display predictions
-        cols = st.columns(3)
-        for i, (img_path, true_label) in enumerate(zip(sample_images, sample_labels)):
-            with cols[i % 3]:
-                image = Image.open(img_path).convert('RGB')
-                st.image(image, caption=f"True: {true_label}", use_column_width=True)
-                
-                # Predict with appropriate input size
-                # Use 331x331 for NASNet, 224x224 for others
-                input_size = 331 if 'NASNet' in str(type(model).__name__) else 224
-                
-                transform = transforms.Compose([
-                    transforms.Resize(int(input_size * 1.15)),
-                    transforms.CenterCrop(input_size),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                ])
-                
-                input_tensor = transform(image).unsqueeze(0).to(device)
-                
-                with torch.no_grad():
-                    output = model(input_tensor)
-                    probabilities = torch.nn.functional.softmax(output[0], dim=0)
-                    predicted_idx = torch.argmax(probabilities).item()
-                    confidence = probabilities[predicted_idx].item() * 100
-                
-                predicted_crop = crop_classes[predicted_idx]
-                color = "green" if predicted_crop == true_label else "red"
-                
-                st.markdown(f"**Predicted**: <span style='color:{color}'>{predicted_crop}</span>", 
-                           unsafe_allow_html=True)
-                st.write(f"**Confidence**: {confidence:.1f}%")
+        st.write("Top 5 Predictions:")
+        for i in range(top5_prob.size(1)):
+            class_name = crop_classes[top5_idx[0][i].item()]
+            prob = top5_prob[0][i].item() * 100
+            st.write(f"- {class_name}: {prob:.2f}%")
 
-# Footer
-st.markdown("---")
-st.markdown("Built with ❤️ using Streamlit and PyTorch")
+
+
