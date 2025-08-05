@@ -55,7 +55,7 @@ page = st.sidebar.selectbox("Choose a page", [
     "🔮 Crop Prediction"
 ])
 
-# Load crop classes
+# Load crop classes and image counts
 @st.cache_data
 def get_crop_classes():
     data_path = "agricultural_data/Agricultural-crops"
@@ -63,7 +63,24 @@ def get_crop_classes():
         return sorted([d for d in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, d))])
     return []
 
+@st.cache_data
+def get_image_counts(crop_classes):
+    """Get image counts for all crop classes"""
+    image_counts = {}
+    total_images = 0
+    for class_name in crop_classes:
+        class_dir = os.path.join("agricultural_data/Agricultural-crops", class_name)
+        if os.path.exists(class_dir):
+            count = len([f for f in os.listdir(class_dir) 
+                       if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+            image_counts[class_name] = count
+            total_images += count
+        else:
+            image_counts[class_name] = 0
+    return image_counts, total_images
+
 crop_classes = get_crop_classes()
+image_counts, total_images = get_image_counts(crop_classes)
 
 # Custom Dataset Class
 class CropDataset(Dataset):
@@ -291,21 +308,7 @@ if page == "📊 Dataset Overview":
         st.metric("Total Crop Classes", len(crop_classes))
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Count images per class
-    @st.cache_data
-    def count_images():
-        image_counts = {}
-        total_images = 0
-        for class_name in crop_classes:
-            class_dir = os.path.join("agricultural_data/Agricultural-crops", class_name)
-            if os.path.exists(class_dir):
-                count = len([f for f in os.listdir(class_dir) 
-                           if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
-                image_counts[class_name] = count
-                total_images += count
-        return image_counts, total_images
-    
-    image_counts, total_images = count_images()
+    # Use global image counts (already calculated)
     
     with col2:
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
@@ -349,6 +352,21 @@ elif page == "🏗️ Model Training":
     if not crop_classes:
         st.error("Dataset not found!")
         st.stop()
+    
+    if not image_counts:
+        st.error("Unable to load dataset information!")
+        st.stop()
+    
+    # Debug information
+    with st.expander("🔍 Debug Information"):
+        st.write(f"Crop classes found: {len(crop_classes)}")
+        st.write(f"Image counts available: {len(image_counts)}")
+        st.write(f"Total images: {sum(image_counts.values())}")
+        if crop_classes:
+            st.write(f"Sample classes: {crop_classes[:5]}")
+        if image_counts:
+            sample_counts = dict(list(image_counts.items())[:5])
+            st.write(f"Sample counts: {sample_counts}")
     
     # Training parameters
     st.subheader("Training Configuration")
@@ -463,10 +481,23 @@ elif page == "🏗️ Model Training":
         
         # Enhanced loss function with class weighting
         # Calculate class weights for imbalanced dataset
-        class_counts = [image_counts.get(crop, 0) for crop in crop_classes]
-        total_samples = sum(class_counts)
-        class_weights = [total_samples / (len(crop_classes) * count) if count > 0 else 1.0 for count in class_counts]
-        class_weights = torch.FloatTensor(class_weights).to(device)
+        try:
+            class_counts = [image_counts.get(crop, 0) for crop in crop_classes]
+            total_samples = sum(class_counts)
+            
+            if total_samples == 0:
+                st.error("No images found in dataset!")
+                st.stop()
+            
+            class_weights = [total_samples / (len(crop_classes) * count) if count > 0 else 1.0 for count in class_counts]
+            class_weights = torch.FloatTensor(class_weights).to(device)
+            
+            st.info(f"📊 Dataset loaded: {total_samples} total images across {len(crop_classes)} classes")
+            
+        except Exception as e:
+            st.error(f"Error calculating class weights: {str(e)}")
+            st.info("Using equal weights for all classes")
+            class_weights = torch.ones(len(crop_classes)).to(device)
         
         criterion = nn.CrossEntropyLoss(weight=class_weights)
         
