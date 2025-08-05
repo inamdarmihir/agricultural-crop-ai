@@ -477,7 +477,7 @@ elif page == "🏗️ Model Training":
         
         # Learning rate scheduler
         if use_scheduler:
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode=\'min\', factor=0.1, patience=5)
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
         
         # Training loop
         st.subheader("Training Progress")
