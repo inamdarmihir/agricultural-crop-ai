@@ -229,7 +229,7 @@ if page == "📊 Dataset Overview":
                     try:
                         img_path = os.path.join(crop_dir, img_file)
                         image = Image.open(img_path)
-                        st.image(image, caption=f"{selected_crop} - {img_file}", use_column_width=True)
+                        st.image(image, caption=f"{selected_crop} - {img_file}", use_container_width=True)
                     except Exception as e:
                         st.error(f"Error loading image: {str(e)}")
 
@@ -504,11 +504,12 @@ elif page == "📈 Model Evaluation":
     # Enhanced model loading with architecture detection
     @st.cache_resource
     def load_model():
+        import torch
+        import torch.serialization
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         try:
             # Add safe globals for numpy arrays to handle PyTorch 2.6 compatibility
-            import torch.serialization
             torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
             
             # Load the saved model (prioritize best NASNet model)
@@ -648,11 +649,12 @@ elif page == "🔮 Crop Prediction":
     # Enhanced prediction model loading
     @st.cache_resource
     def load_prediction_model():
+        import torch
+        import torch.serialization
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         try:
             # Add safe globals for numpy arrays to handle PyTorch 2.6 compatibility
-            import torch.serialization
             torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
             
             # Load the saved model (prioritize best NASNet model)
@@ -698,7 +700,7 @@ elif page == "🔮 Crop Prediction":
             col1, col2 = st.columns(2)
             
             with col1:
-                st.image(image, caption="Uploaded Image", use_column_width=True)
+                st.image(image, caption="Uploaded Image", use_container_width=True)
             
             with col2:
                 # Preprocess image with NASNet input size (331x331)
@@ -766,7 +768,7 @@ elif page == "🔮 Crop Prediction":
             for i, (img_path, true_label) in enumerate(zip(sample_images, sample_labels)):
                 with cols[i % 3]:
                     image = Image.open(img_path).convert('RGB')
-                    st.image(image, caption=f"True: {true_label}", use_column_width=True)
+                    st.image(image, caption=f"True: {true_label}", use_container_width=True)
                     
                     # Predict with NASNet input size (331x331)
                     transform = transforms.Compose([
