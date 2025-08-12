@@ -497,9 +497,18 @@ elif page == "🏗️ Model Training":
 elif page == "📈 Model Evaluation":
     st.header("Model Evaluation")
     
-    if not (os.path.exists('best_nasnet_crop_model.pth') or os.path.exists('final_nasnet_crop_model.pth')):
+    # Check for available model files
+    available_models = []
+    if os.path.exists('best_nasnet_crop_model.pth'):
+        available_models.append('best_nasnet_crop_model.pth')
+    if os.path.exists('final_nasnet_crop_model.pth'):
+        available_models.append('final_nasnet_crop_model.pth')
+    
+    if not available_models:
         st.warning("No trained NASNet model found! Please train a model first.")
         st.stop()
+    
+    st.info(f"🎯 Found model files: {available_models}")
     
     # Enhanced model loading with architecture detection
     @st.cache_resource
@@ -516,7 +525,8 @@ elif page == "📈 Model Evaluation":
             if os.path.exists('best_nasnet_crop_model.pth'):
                 checkpoint = torch.load('best_nasnet_crop_model.pth', map_location=device, weights_only=False)
                 state_dict = checkpoint.get('model_state_dict', checkpoint)
-                st.info("🔧 Loading best NASNet model from best_nasnet_crop_model.pth")
+                st.success("🔧 Loading best NASNet model from best_nasnet_crop_model.pth")
+                st.info(f"📊 Model info: {len(state_dict)} layers loaded")
                 
                 # Display model info if available
                 if 'epoch' in checkpoint:
@@ -527,7 +537,8 @@ elif page == "📈 Model Evaluation":
             elif os.path.exists('final_nasnet_crop_model.pth'):
                 checkpoint = torch.load('final_nasnet_crop_model.pth', map_location=device, weights_only=False)
                 state_dict = checkpoint.get('model_state_dict', checkpoint)
-                st.info("🔧 Loading final NASNet model from final_nasnet_crop_model.pth")
+                st.success("🔧 Loading final NASNet model from final_nasnet_crop_model.pth")
+                st.info(f"📊 Model info: {len(state_dict)} layers loaded")
             else:
                 st.error("No trained NASNet model found!")
                 st.info("Please train a model first using the training page.")
@@ -642,9 +653,18 @@ elif page == "📈 Model Evaluation":
 elif page == "🔮 Crop Prediction":
     st.header("Crop Prediction")
     
-    if not (os.path.exists('best_nasnet_crop_model.pth') or os.path.exists('final_nasnet_crop_model.pth')):
+    # Check for available model files
+    available_models = []
+    if os.path.exists('best_nasnet_crop_model.pth'):
+        available_models.append('best_nasnet_crop_model.pth')
+    if os.path.exists('final_nasnet_crop_model.pth'):
+        available_models.append('final_nasnet_crop_model.pth')
+    
+    if not available_models:
         st.warning("No trained NASNet model found! Please train a model first.")
         st.stop()
+    
+    st.info(f"🎯 Found model files: {available_models}")
     
     # Enhanced prediction model loading
     @st.cache_resource
@@ -661,6 +681,7 @@ elif page == "🔮 Crop Prediction":
             if os.path.exists('best_nasnet_crop_model.pth'):
                 checkpoint = torch.load('best_nasnet_crop_model.pth', map_location=device, weights_only=False)
                 state_dict = checkpoint.get('model_state_dict', checkpoint)
+                st.success("🔧 Loading best NASNet model for prediction")
             elif os.path.exists('final_nasnet_crop_model.pth'):
                 checkpoint = torch.load('final_nasnet_crop_model.pth', map_location=device, weights_only=False)
                 state_dict = checkpoint.get('model_state_dict', checkpoint)
