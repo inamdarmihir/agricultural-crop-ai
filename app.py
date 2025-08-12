@@ -616,6 +616,10 @@ elif page == "📈 Model Evaluation":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         try:
+            # Add safe globals for numpy arrays to handle PyTorch 2.6 compatibility
+            import torch.serialization
+            torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
+            
             # Load the saved model (prioritize NASNet model)
             if os.path.exists('best_nasnet_crop_model.pth'):
                 checkpoint = torch.load('best_nasnet_crop_model.pth', map_location=device, weights_only=False)
@@ -785,6 +789,10 @@ elif page == "🔮 Crop Prediction":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         try:
+            # Add safe globals for numpy arrays to handle PyTorch 2.6 compatibility
+            import torch.serialization
+            torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
+            
             # Load the saved model (prioritize NASNet model)
             if os.path.exists('best_nasnet_crop_model.pth'):
                 checkpoint = torch.load('best_nasnet_crop_model.pth', map_location=device, weights_only=False)

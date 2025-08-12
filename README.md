@@ -120,7 +120,10 @@ from PIL import Image
 from torchvision import transforms
 
 # Load your trained model
-model = torch.load('crop_model_deployment.pth', map_location='cpu')
+# For PyTorch 2.6+ compatibility, use weights_only=False
+import torch.serialization
+torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
+model = torch.load('crop_model_deployment.pth', map_location='cpu', weights_only=False)
 
 # Preprocess image
 transform = transforms.Compose([

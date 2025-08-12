@@ -401,7 +401,10 @@ elif page == "📈 Model Evaluation":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         try:
-            state_dict = torch.load(model_file, map_location=device)
+            # Add safe globals for numpy arrays to handle PyTorch 2.6 compatibility
+            import torch.serialization
+            torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
+            state_dict = torch.load(model_file, map_location=device, weights_only=False)
             
             # Detect model architecture
             if 'efficientnet' in str(state_dict).lower():
@@ -497,7 +500,10 @@ elif page == "🔮 Crop Prediction":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         try:
-            state_dict = torch.load(model_file, map_location=device)
+            # Add safe globals for numpy arrays to handle PyTorch 2.6 compatibility
+            import torch.serialization
+            torch.serialization.add_safe_globals(['numpy.core.multiarray.scalar'])
+            state_dict = torch.load(model_file, map_location=device, weights_only=False)
             
             # Detect model architecture
             if 'efficientnet' in str(state_dict).lower():
